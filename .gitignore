@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+.astro/
+.angular/
+.nuxt/
+.output/
+results/

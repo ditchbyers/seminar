@@ -1,0 +1,16 @@
+{
+  "name": "nuxt-latest",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev --port 3022",
+    "build": "nuxt build",
+    "start": "node .output/server/index.mjs",
+    "preview": "nuxt preview --port 3022"
+  },
+  "dependencies": {
+    "nuxt": "latest",
+    "@tailwindcss/vite": "latest",
+    "tailwindcss": "latest"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": false,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "server.ts",
+    "db.ts",
+    "seed.ts",
+    "lighthouse/benchmark-lighthouse.ts",
+    "lighthouse/**/*.ts",
+    "jmeter/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "results"
+  ]
+}

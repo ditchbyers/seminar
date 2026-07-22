@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Home">
+  <h1 class="text-3xl font-bold mb-4">Hotel Reviews – Astro (latest)</h1>
+  <p class="text-gray-600 mb-8">Performance benchmark project. Select a test scenario:</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <a href="/text-only" class="block bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+      <h2 class="font-semibold text-lg mb-1">Text Only</h2>
+      <p class="text-sm text-gray-500">Hotel reviews without any media.</p>
+    </a>
+    {['480p','720p','1080p','2k','4k'].map(res => (
+      <a href={`/text-images/${res}`} class="block bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+        <h2 class="font-semibold text-lg mb-1">Images – {res}</h2>
+        <p class="text-sm text-gray-500">Reviews with {res} placeholder images.</p>
+      </a>
+    ))}
+    {['720p','1080p','2k','4k'].map(res => (
+      <a href={`/text-videos/${res}`} class="block bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+        <h2 class="font-semibold text-lg mb-1">Videos – {res}</h2>
+        <p class="text-sm text-gray-500">Reviews with {res} sample videos.</p>
+      </a>
+    ))}
+    <a href="/list" class="block bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+      <h2 class="font-semibold text-lg mb-1">List (Load Test)</h2>
+      <p class="text-sm text-gray-500">100 reviews – target for JMeter scenarios.</p>
+    </a>
+  </div>
+</Layout>

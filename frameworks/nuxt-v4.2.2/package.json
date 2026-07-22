@@ -1,0 +1,16 @@
+{
+  "name": "nuxt-v4",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev --port 3021",
+    "build": "nuxt build",
+    "start": "node .output/server/index.mjs",
+    "preview": "nuxt preview --port 3021"
+  },
+  "dependencies": {
+    "nuxt": "4.2.2",
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "tailwindcss": "^3.4.17"
+  }
+}

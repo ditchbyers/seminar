@@ -1,0 +1,25 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ReviewCardWithVideo from '../../components/ReviewCardWithVideo.astro';
+import { API_BASE, VALID_RESOLUTIONS, VIDEO_RESOLUTIONS } from '../../lib/config';
+const { resolution } = Astro.params;
+if (!VIDEO_RESOLUTIONS.includes(resolution!)) return Astro.redirect('/text-videos/720p');
+const table = Astro.url.searchParams.get('table') ?? 'hotel_reviews';
+const limit = Number(Astro.url.searchParams.get('limit') ?? 12);
+const delay = Astro.url.searchParams.get('delay') ?? '0';
+const res = await fetch(`${API_BASE}/api/reviews?table=${table}&limit=${limit}&delay=${delay}`);
+const { data: reviews, total } = await res.json();
+---
+<Layout title={`Videos – ${resolution}`}>
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <h1 class="text-2xl font-bold">Videos <span class="text-blue-600">{resolution}</span> <span class="text-gray-400 text-base font-normal">({total} total)</span></h1>
+    <div class="flex gap-2 flex-wrap text-sm">
+      {VIDEO_RESOLUTIONS.map(r => (
+        <a href={`/text-videos/${r}?table=${table}`} class={`px-3 py-1 rounded-full border ${resolution===r?'bg-blue-600 text-white border-blue-600':'border-gray-300 hover:bg-gray-50'}`}>{r}</a>
+      ))}
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {reviews.map((r: any) => <ReviewCardWithVideo review={r} resolution={resolution!} />)}
+  </div>
+</Layout>

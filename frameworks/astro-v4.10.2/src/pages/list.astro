@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ReviewCard from '../components/ReviewCard.astro';
+import { API_BASE } from '../lib/config';
+
+// This page is the JMeter load-test target – always returns 100 reviews.
+const table = Astro.url.searchParams.get('table') ?? 'hotel_reviews';
+const delay = Astro.url.searchParams.get('delay') ?? '0';
+
+const res = await fetch(`${API_BASE}/api/reviews?table=${table}&limit=100&delay=${delay}`);
+const { data: reviews } = await res.json();
+---
+<Layout title="List – Load Test">
+  <h1 class="text-2xl font-bold mb-6">Review List <span class="text-sm text-gray-400 font-normal">(100 items – JMeter target)</span></h1>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {reviews.map((r: any) => <ReviewCard review={r} />)}
+  </div>
+</Layout>
