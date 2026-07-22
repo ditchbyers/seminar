@@ -255,23 +255,27 @@ function waitForUrl(targetUrl: string, timeoutMs = 15000): Promise<void> {
 
 function runLighthouse(targetUrl: string, runDir: string, preset: string): Promise<LighthouseOutputs> {
   return new Promise((resolve, reject) => {
+    const projectRoot = path.resolve(__dirname, '..');
     const outputBase = path.join(runDir, 'report');
+    const chromeProfileDir = path.join(runDir, 'chrome-profile');
+    const tempRoot = path.join(projectRoot, '.tmp', 'lighthouse');
+    fsSync.mkdirSync(chromeProfileDir, { recursive: true });
+    fsSync.mkdirSync(tempRoot, { recursive: true });
+
+    const chromeFlags = `--headless=new --user-data-dir=${chromeProfileDir} --no-first-run --no-default-browser-check`;
+    const localCli = path.join(projectRoot, 'node_modules', 'lighthouse', 'cli', 'index.js');
     const localBinary = path.join(
-      __dirname,
+      projectRoot,
       'node_modules',
       '.bin',
       process.platform === 'win32' ? 'lighthouse.cmd' : 'lighthouse'
     );
-    const lighthouseCommand = fsSync.existsSync(localBinary)
-      ? localBinary
-      : process.platform === 'win32'
-        ? 'lighthouse.cmd'
-        : 'lighthouse';
     const args = [
       targetUrl,
       '--quiet',
       '--no-enable-error-reporting',
       '--only-categories=performance',
+      `--chrome-flags=${chromeFlags}`,
       '--output=json',
       '--output=html',
       '--output=csv',
@@ -280,14 +284,39 @@ function runLighthouse(targetUrl: string, runDir: string, preset: string): Promi
       '--disable-full-page-screenshot',
     ];
 
-    const child = spawn(lighthouseCommand, args, {
-      cwd: __dirname,
+    const launch =
+      fsSync.existsSync(localCli)
+        ? {
+            command: process.execPath,
+            args: [localCli, ...args],
+            label: `${process.execPath} ${localCli}`,
+          }
+        : fsSync.existsSync(localBinary)
+          ? {
+              command: process.platform === 'win32' ? 'cmd.exe' : localBinary,
+              args: process.platform === 'win32' ? ['/d', '/s', '/c', `"${localBinary}" ${args.join(' ')}`] : args,
+              label: process.platform === 'win32' ? `cmd.exe /d /s /c "${localBinary}" ...` : localBinary,
+            }
+          : {
+              command: process.platform === 'win32' ? 'cmd.exe' : 'lighthouse',
+              args: process.platform === 'win32' ? ['/d', '/s', '/c', `lighthouse ${args.join(' ')}`] : args,
+              label: process.platform === 'win32' ? 'cmd.exe /d /s /c lighthouse ...' : 'lighthouse',
+            };
+
+    const child = spawn(launch.command, launch.args, {
+      cwd: projectRoot,
       stdio: 'inherit',
-      shell: process.platform === 'win32',
+      shell: false,
+      env: {
+        ...process.env,
+        TMP: tempRoot,
+        TEMP: tempRoot,
+        TMPDIR: tempRoot,
+      },
     });
 
     child.on('error', (error: Error) => {
-      reject(new Error(`Failed to launch Lighthouse (${lighthouseCommand}): ${error.message}`));
+      reject(new Error(`Failed to launch Lighthouse (${launch.label}): ${error.message}`));
     });
     child.on('exit', (code) => {
       if (code === 0) {
@@ -298,6 +327,25 @@ function runLighthouse(targetUrl: string, runDir: string, preset: string): Promi
         });
         return;
       }
+
+      const outputs: LighthouseOutputs = {
+        jsonPath: `${outputBase}.report.json`,
+        htmlPath: `${outputBase}.report.html`,
+        csvPath: `${outputBase}.report.csv`,
+      };
+
+      // On Windows, Lighthouse can finish successfully and then fail with EPERM
+      // while deleting its temporary profile directory. If the JSON report exists,
+      // keep the benchmark result instead of failing the whole run.
+      if (process.platform === 'win32' && code === 1 && fsSync.existsSync(outputs.jsonPath)) {
+        process.stderr.write(
+          `[warn] Lighthouse exited with code 1 after generating a report for ${targetUrl}. ` +
+          'Continuing (likely Windows temp cleanup EPERM).\n'
+        );
+        resolve(outputs);
+        return;
+      }
+
       reject(new Error(`Lighthouse exited with code ${code} for ${targetUrl}`));
     });
   });
